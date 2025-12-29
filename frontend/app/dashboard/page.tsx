@@ -1,11 +1,20 @@
 "use client";
 
-import { AuthProvider, useAuth } from "./context/AuthContext";
-import { LoginForm, Navbar } from "./components/Navigation";
-import { Dashboard } from "./components/Dashboard";
+import { AuthProvider, useAuth } from "../context/AuthContext";
+import { LoginForm, Navbar } from "../components/Navigation";
+import { Dashboard } from "../components/Dashboard";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
-function HomeContent() {
+function DashboardContent() {
   const { user, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push("/");
+    }
+  }, [user, isLoading, router]);
 
   if (isLoading) {
     return (
@@ -19,7 +28,7 @@ function HomeContent() {
   }
 
   if (!user) {
-    return <LoginForm />;
+    return null;
   }
 
   return (
@@ -30,10 +39,10 @@ function HomeContent() {
   );
 }
 
-export default function Home() {
+export default function DashboardPage() {
   return (
     <AuthProvider>
-      <HomeContent />
+      <DashboardContent />
     </AuthProvider>
   );
 }
