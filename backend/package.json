@@ -2,14 +2,23 @@
   "name": "backend",
   "version": "1.0.50",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "bun run --watch src/index.ts"
+    "dev": "bun run --watch src/index.ts",
+    "build": "bun build src/index.ts --outdir ./dist",
+    "start": "bun run dist/index.js",
+    "db:generate": "bunx prisma generate",
+    "db:push": "bunx prisma db push",
+    "db:migrate": "bunx prisma migrate dev",
+    "db:studio": "bunx prisma studio",
+    "db:seed": "bun run prisma/seed.ts"
   },
   "dependencies": {
-    "elysia": "latest"
+    "@prisma/client": "^6.2.1",
+    "elysia": "latest",
+    "@elysiajs/cors": "latest"
   },
   "devDependencies": {
-    "bun-types": "latest"
+    "bun-types": "latest",
+    "prisma": "^6.2.1"
   },
   "module": "src/index.js"
 }

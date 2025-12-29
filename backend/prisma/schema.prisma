@@ -1,0 +1,116 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  avatar    String?
+  role      Role     @default(TUTOR)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  subjects    Subject[]
+  assignments Assignment[]
+
+  @@map("users")
+}
+
+enum Role {
+  TUTOR
+  STUDENT
+  ADMIN
+}
+
+model Subject {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  icon        String?
+  color       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  tutor       User         @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  tutorId     String
+  topics      Topic[]
+  assignments Assignment[]
+
+  @@map("subjects")
+}
+
+model Topic {
+  id        String   @id @default(cuid())
+  name      String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  subject   Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  subjectId String
+  problems  Problem[]
+
+  @@map("topics")
+}
+
+model Assignment {
+  id          String           @id @default(cuid())
+  title       String
+  description String?
+  dueDate     DateTime?
+  status      AssignmentStatus @default(DRAFT)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  // Relations
+  tutor     User      @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  tutorId   String
+  subject   Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  subjectId String
+  problems  Problem[]
+
+  @@map("assignments")
+}
+
+enum AssignmentStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+model Problem {
+  id         String     @id @default(cuid())
+  question   String
+  answer     String?
+  difficulty Difficulty @default(MEDIUM)
+  order      Int        @default(0)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  // Relations
+  topic        Topic?      @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  topicId      String?
+  assignment   Assignment? @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  assignmentId String?
+
+  @@map("problems")
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
