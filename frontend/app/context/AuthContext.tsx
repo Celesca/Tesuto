@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { userAPI, User as APIUser } from "../lib/api";
 
 interface User {
   id: string;
@@ -13,8 +14,9 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: () => void;
+  login: () => Promise<void>;
   logout: () => void;
+  bypassLogin: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,17 +34,74 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = () => {
-    // Mock Google login - simulate a tutor user
-    const mockUser: User = {
-      id: "tutor-001",
-      name: "Sarah Johnson",
-      email: "sarah.johnson@tesuto.edu",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
-      role: "tutor",
-    };
-    setUser(mockUser);
-    localStorage.setItem("tesuto_user", JSON.stringify(mockUser));
+  const login = async () => {
+    // Mock Google login - authenticate with backend
+    try {
+      const apiUser = await userAPI.auth({
+        email: "sarah.johnson@tesuto.edu",
+        name: "Sarah Johnson",
+        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
+        role: "TUTOR",
+      });
+      
+      const mockUser: User = {
+        id: apiUser.id,
+        name: apiUser.name,
+        email: apiUser.email,
+        avatar: apiUser.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
+        role: apiUser.role.toLowerCase() as "tutor" | "student",
+      };
+      setUser(mockUser);
+      localStorage.setItem("tesuto_user", JSON.stringify(mockUser));
+    } catch (error) {
+      console.error("Login failed:", error);
+      // Fallback to mock user if backend is not available
+      const mockUser: User = {
+        id: "tutor-001",
+        name: "Sarah Johnson",
+        email: "sarah.johnson@tesuto.edu",
+        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
+        role: "tutor",
+      };
+      setUser(mockUser);
+      localStorage.setItem("tesuto_user", JSON.stringify(mockUser));
+    }
+  };
+
+  const bypassLogin = async () => {
+    // Bypass login for development - auto-login as tutor
+    setIsLoading(true);
+    try {
+      const apiUser = await userAPI.auth({
+        email: "sarah.johnson@tesuto.edu",
+        name: "Sarah Johnson",
+        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
+        role: "TUTOR",
+      });
+      
+      const mockUser: User = {
+        id: apiUser.id,
+        name: apiUser.name,
+        email: apiUser.email,
+        avatar: apiUser.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
+        role: apiUser.role.toLowerCase() as "tutor" | "student",
+      };
+      setUser(mockUser);
+      localStorage.setItem("tesuto_user", JSON.stringify(mockUser));
+    } catch (error) {
+      console.error("Bypass login failed:", error);
+      // Fallback to mock user
+      const mockUser: User = {
+        id: "tutor-001",
+        name: "Sarah Johnson",
+        email: "sarah.johnson@tesuto.edu",
+        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
+        role: "tutor",
+      };
+      setUser(mockUser);
+      localStorage.setItem("tesuto_user", JSON.stringify(mockUser));
+    }
+    setIsLoading(false);
   };
 
   const logout = () => {
@@ -51,7 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout, bypassLogin }}>
       {children}
     </AuthContext.Provider>
   );

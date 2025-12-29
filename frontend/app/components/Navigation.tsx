@@ -29,8 +29,9 @@ const GoogleIcon = () => (
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: "📊" },
+  { label: "Subjects", href: "/subjects", icon: "📚" },
   { label: "Generate Homework", href: "/generate", icon: "📝" },
-  { label: "My Assignments", href: "/assignments", icon: "📚" },
+  { label: "Assignments", href: "/assignments", icon: "📋" },
   { label: "Students", href: "/students", icon: "👥" },
 ];
 
@@ -112,15 +113,20 @@ export function Navbar() {
 }
 
 export function LoginForm() {
-  const { login } = useAuth();
+  const { login, bypassLogin } = useAuth();
   const [isLoading, setIsLoading] = React.useState(false);
+  const [isBypassing, setIsBypassing] = React.useState(false);
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    login();
+    await login();
     setIsLoading(false);
+  };
+
+  const handleBypassLogin = async () => {
+    setIsBypassing(true);
+    await bypassLogin();
+    setIsBypassing(false);
   };
 
   return (
@@ -155,6 +161,25 @@ export function LoginForm() {
             leftIcon={!isLoading && <GoogleIcon />}
           >
             {isLoading ? "Signing in..." : "Continue with Google"}
+          </Button>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="bg-card px-2 text-muted">or</span>
+            </div>
+          </div>
+
+          <Button
+            onClick={handleBypassLogin}
+            isLoading={isBypassing}
+            variant="secondary"
+            size="lg"
+            className="w-full"
+          >
+            {isBypassing ? "Entering..." : "Quick Demo Access"}
           </Button>
 
           <div className="mt-6 text-center">
